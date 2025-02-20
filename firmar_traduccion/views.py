@@ -1,7 +1,7 @@
 import io
 import os
 import fitz  # PyMuPDF
-import  pythoncom
+from win32com import client as pythoncom
 from django.http import FileResponse
 from django.shortcuts import render
 from django.core.files.storage import default_storage
