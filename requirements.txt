@@ -2,9 +2,9 @@ comtypes==1.4.10
 dj_database_url==2.2.0
 Django==4.2.2
 docx2pdf==0.1.8
+pypdf==5.3.0
 PyMuPDF==1.22.5
 Pillow==11.1.0
-pywin32==307
 reportlab==4.3.1
 
 gunicorn==21.2.0         # Necesario para correr Django en Render
