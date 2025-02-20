@@ -1,7 +1,7 @@
 dj_database_url==2.2.0
 Django==4.2.2
 docx2pdf==0.1.8
-fitz==0.0.1.dev2
+PyMuPDF==1.22.5
 Pillow==11.1.0
 
 gunicorn==21.2.0         # Necesario para correr Django en Render
