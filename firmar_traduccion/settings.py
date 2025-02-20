@@ -21,12 +21,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@w#6zqh0%d@uqy()s_#b=_%agpybn2pdlso3(r=x(3ttxhg70&'
+# SECRET_KEY = 'django-insecure-@w#6zqh0%d@uqy()s_#b=_%agpybn2pdlso3(r=x(3ttxhg70&'
+SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')#RENDER
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = 'RENDER' not in os.environ #RENDER
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = []#Render
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 
 # Application definition
@@ -42,6 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Para servir archivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -82,6 +88,14 @@ DATABASES = {
     }
 }
 
+# Configuración para producción
+import logging
+import dj_database_url
+
+if os.getenv('RENDER') == 'TRUE':
+    logging.warning("Using production database settings")
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -105,7 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-co'
 
 TIME_ZONE = 'UTC'
 
@@ -118,9 +132,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static/')]
-APPEND_SLASH = True
+# Agregar STATIC_ROOT para producción
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static/')]
+
+if not DEBUG:#RENDER
+    # Tell Django to copy statics to the `staticfiles` directory
+    # in your application directory on Render.
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    # Turn on WhiteNoise storage backend that takes care of compressing static files
+    # and creating unique names for each version so they can safely be cached forever.
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    APPEND_SLASH = True
+
+# Configurar WhiteNoise para la compresión y el caché en producción
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 MEDIA_URL = '/media/'
@@ -130,4 +157,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'                                                                            
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
