@@ -1,11 +1,12 @@
 import io
+import os
 import fitz  # PyMuPDF
 from django.http import FileResponse
 from django.shortcuts import render
 from django.core.files.storage import default_storage
 from django.conf import settings
-import os
 from docx2pdf import convert
+from PIL import Image
 
 def firmar_documento(request):
     if request.method == "POST" and request.FILES.get("archivo"):
@@ -21,21 +22,28 @@ def firmar_documento(request):
         ruta_word_absoluta = default_storage.path(ruta_word)
         ruta_pdf = ruta_word_absoluta.replace(".docx", ".pdf")
 
-        # Convertir Word a PDF manteniendo formato
-        convert(ruta_word_absoluta, ruta_pdf)
+        try:
+            # Convertir Word a PDF manteniendo formato
+            convert(ruta_word_absoluta, ruta_pdf)
 
-        # Agregar firma en la parte inferior derecha
-        pdf_firmado = agregar_firma(ruta_pdf, firma_nombre)
+            # Agregar firma en la parte inferior derecha
+            pdf_firmado = agregar_firma(ruta_pdf, firma_nombre)
 
-        # Responder con el PDF firmado
-        response = FileResponse(pdf_firmado, content_type="application/pdf")
-        response["Content-Disposition"] = 'attachment; filename="documento_firmado.pdf"'
+            # Responder con el PDF firmado
+            response = FileResponse(pdf_firmado, content_type="application/pdf")
+            response["Content-Disposition"] = 'attachment; filename="documento_firmado.pdf"'
+
+        finally:
+            # Eliminar archivos temporales después de generar el PDF firmado
+            if os.path.exists(ruta_word_absoluta):
+                os.remove(ruta_word_absoluta)
+            if os.path.exists(ruta_pdf):
+                os.remove(ruta_pdf)
+
         return response
 
     return render(request, "index.html")
 
-
-from PIL import Image
 
 def agregar_firma(ruta_pdf, firma_nombre):
     """ Agrega la firma en la parte inferior derecha de todas las páginas sin modificar su tamaño """
