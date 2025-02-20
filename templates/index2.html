@@ -28,16 +28,12 @@
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="card p-4">
-            <div class="text-center">
-            <img src="static/img/logo_apostilla.png" alt="logo" class="img-fluid text" style="max-width: 100px;">
-            </div>
-            <h3 class="text-center">Firmar Traducciones</h3>
+            <h3 class="text-center">Firmar Documento</h3>
             <p class="text-center text-muted">Sube un archivo Word (.docx), elige la firma y lo convertiremos a PDF con el pie de página.</p>
 
-            <form action="{% url 'firmar_documento' %}" method="post" enctype="multipart/form-data">
+            <form action="{% url 'firmar_documento_alternativo' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 <div class="mb-3">
@@ -49,11 +45,10 @@
                 <div class="mb-3">
                     <label for="firma" class="form-label">Elige una firma:</label>
                     <select class="form-control" id="firma" name="firma" required>
-                        <!-- <option value="" >Seleccione una firma</option> -->
-                        <option value="firma_ingles.png">Inglés</option>
-                        <option value="firma_aleman.png">Alemán</option>
-                        <option value="firma_frances.png">Frances</option>
-                        <option value="firma_italiano.png">Italiano</option>
+                        <option value="firma_ingles.png">Firma en Inglés</option>
+                        <option value="firma_aleman.png">Firma en Alemán</option>
+                        <option value="firma_frances.png">Firma Frances</option>
+                        <option value="firma_italiano.png">Firma Italiano</option>
                     </select>
                 </div>
 
@@ -64,7 +59,7 @@
                 {% endif %}
             </form>
         </div>
-    <a href="{% url 'firmar_documento_alternativo' %}">Firmar Documento con comtypes</a>
+    <a href="{% url 'firmar_documento' %}">Volver</a>
 
     </div>
 
