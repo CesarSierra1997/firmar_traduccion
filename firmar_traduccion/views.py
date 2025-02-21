@@ -8,15 +8,31 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 from PIL import Image
 
-
+import subprocess
+import platform
+from docx2pdf import convert
 
 def convertir_docx_a_pdf(input_path, output_path):
-    """Convierte un archivo DOCX a PDF usando LibreOffice en servidores Linux."""
-    command = ["libreoffice", "--headless", "--convert-to", "pdf", input_path]
-    subprocess.run(command, check=True)
-    converted_file = input_path.replace(".docx", ".pdf")  # LibreOffice guarda en la misma carpeta
-    if os.path.exists(converted_file):
-        os.rename(converted_file, output_path)  # Renombrar al destino esperado
+    """Convierte un DOCX a PDF, usando la mejor opción según el SO."""
+    
+    sistema = platform.system()
+    
+    if sistema == "Windows":
+        try:
+            convert(input_path, output_path)  # Usa docx2pdf en Windows
+        except Exception as e:
+            raise RuntimeError(f"Error en conversión en Windows: {e}")
+    
+    else:  # Linux o macOS (Render usará Linux)
+        command = ["libreoffice", "--headless", "--convert-to", "pdf", input_path]
+        try:
+            subprocess.run(command, check=True)
+            converted_file = input_path.replace(".docx", ".pdf")
+            if os.path.exists(converted_file):
+                os.rename(converted_file, output_path)
+        except Exception as e:
+            raise RuntimeError(f"Error en conversión en Linux: {e}")
+
 
 
 def firmar_documento(request):
@@ -72,7 +88,7 @@ def agregar_firma(ruta_pdf, firma_nombre):
         firma_ancho, firma_alto = img.size
 
     # Ajustar tamaño de la firma dinámicamente
-    factor_conversion = 0.15  # Tamaño relativo
+    factor_conversion = 0.45 # Tamaño relativo
     for page in doc:
         ancho_pagina = page.rect.width
         alto_pagina = page.rect.height

@@ -17,11 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from .views import firmar_documento
-from.views_aterna import firmar_documento_alternativo
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', firmar_documento, name='firmar_documento'), 
-    path('alternative/', firmar_documento_alternativo, name='firmar_documento_alternativo'),
-
 ]
