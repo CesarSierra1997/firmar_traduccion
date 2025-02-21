@@ -9,29 +9,21 @@ from django.conf import settings
 from PIL import Image
 
 import subprocess
-import platform
-from docx2pdf import convert
+import os
 
 def convertir_docx_a_pdf(input_path, output_path):
-    """Convierte un DOCX a PDF, usando la mejor opción según el SO."""
-    
-    sistema = platform.system()
-    
-    if sistema == "Windows":
-        try:
-            convert(input_path, output_path)  # Usa docx2pdf en Windows
-        except Exception as e:
-            raise RuntimeError(f"Error en conversión en Windows: {e}")
-    
-    else:  # Linux o macOS (Render usará Linux)
-        command = ["libreoffice", "--headless", "--convert-to", "pdf", input_path]
-        try:
-            subprocess.run(command, check=True)
-            converted_file = input_path.replace(".docx", ".pdf")
-            if os.path.exists(converted_file):
-                os.rename(converted_file, output_path)
-        except Exception as e:
-            raise RuntimeError(f"Error en conversión en Linux: {e}")
+    """Convierte DOCX a PDF usando Unoconv."""
+    try:
+        command = ["unoconv", "-f", "pdf", input_path]
+        subprocess.run(command, check=True)
+        converted_file = input_path.replace(".docx", ".pdf")
+        if os.path.exists(converted_file):
+            os.rename(converted_file, output_path)
+        else:
+            raise RuntimeError("No se generó el archivo PDF.")
+    except Exception as e:
+        raise RuntimeError(f"Error en conversión con Unoconv: {e}")
+
 
 
 

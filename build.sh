@@ -2,9 +2,8 @@
 # exit on error
 set -o errexit
 
-# Instalar LibreOffice y verificar instalación
-apt-get update && apt-get install -y libreoffice libreoffice-core libreoffice-writer libreoffice-common unoconv
-libreoffice --version || echo "⚠ LibreOffice no está disponible"
+# Instalar Unoconv
+apt-get update && apt-get install -y unoconv
 
 # Instalar dependencias de Python
 pip install -r requirements.txt
