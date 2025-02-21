@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # exit on error
 set -o errexit
+apt-get update && apt-get install -y libreoffice
 
 #poetry install
 pip install -r requirements.txt
