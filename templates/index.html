@@ -39,7 +39,7 @@
             <div class="text-center">
             <img src="{% static 'img/logo_apostilla.png' %}" alt="logo">
             </div>
-            <h3 class="text-center">Firmar Traducciones</h3>
+            <h3 class="text-center">Firmar Traducciones </h3>
             <p class="text-center text-muted">Sube un archivo Word (.docx), elige la firma y lo convertiremos a PDF con el pie de página.</p>
 
             <form action="{% url 'firmar_documento' %}" method="post" enctype="multipart/form-data">
@@ -67,7 +67,11 @@
                 {% if error %}
                     <div class="alert alert-danger mt-3">{{ error }}</div>
                 {% endif %}
+
             </form>
+        </div>
+        <div class="text-center">
+            <em class="text-muted">App - firmar_traduccion version 1.0 - 2025</em>
         </div>
 
     </div>

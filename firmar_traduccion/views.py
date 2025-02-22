@@ -9,22 +9,39 @@ from django.conf import settings
 from PIL import Image
 
 import subprocess
-import os
+import platform
+from docx2pdf import convert
 
 def convertir_docx_a_pdf(input_path, output_path):
-    """Convierte DOCX a PDF usando Unoconv."""
-    try:
-        command = ["unoconv", "-f", "pdf", input_path]
-        subprocess.run(command, check=True)
-        converted_file = input_path.replace(".docx", ".pdf")
-        if os.path.exists(converted_file):
-            os.rename(converted_file, output_path)
-        else:
-            raise RuntimeError("No se generó el archivo PDF.")
-    except Exception as e:
-        raise RuntimeError(f"Error en conversión con Unoconv: {e}")
+    """Convierte un DOCX a PDF en Linux usando LibreOffice."""
+    sistema = platform.system()
+    output_dir = os.path.dirname(output_path)  # Asegurar directorio de salida
 
+    if sistema == "Windows":
+        try:
+            convert(input_path, output_path)  # Usa docx2pdf en Windows
+        except Exception as e:
+            raise RuntimeError(f"Error en conversión en Windows: {e}")
 
+    else:  # Linux (Docker usa Linux)
+        command = [
+            "libreoffice", "--headless", "--convert-to", "pdf",
+            "--outdir", output_dir, input_path
+        ]
+
+        try:
+            subprocess.run(command, check=True)
+
+            # Asegurar que el archivo PDF realmente existe
+            converted_file = os.path.join(output_dir, os.path.basename(input_path).replace(".docx", ".pdf"))
+            if os.path.exists(converted_file):
+                os.rename(converted_file, output_path)
+                print(f"✅ PDF generado en: {output_path}")
+            else:
+                raise RuntimeError(f"Conversión fallida, no se generó {converted_file}")
+
+        except Exception as e:
+            raise RuntimeError(f"Error en conversión en Linux: {e}")
 
 
 def firmar_documento(request):
@@ -41,6 +58,10 @@ def firmar_documento(request):
         ruta_word_absoluta = default_storage.path(ruta_word)
         ruta_pdf = ruta_word_absoluta.replace(".docx", ".pdf")
 
+        print(f"📂 Ruta DOCX: {ruta_word_absoluta}")
+        print(f"📂 Ruta PDF esperada: {ruta_pdf}")
+
+
         try:
             # Convertir a PDF
             convertir_docx_a_pdf(ruta_word_absoluta, ruta_pdf)
@@ -50,17 +71,23 @@ def firmar_documento(request):
             pdf_firmado = agregar_firma(ruta_pdf, firma_nombre)
             response = FileResponse(pdf_firmado, content_type="application/pdf")
             response["Content-Disposition"] = 'attachment; filename="documento_firmado.pdf"'
+
+            if os.path.exists(ruta_pdf):
+                print(f"✅ Archivo PDF generado correctamente: {ruta_pdf}")
+            else:
+                print("❌ ERROR: El archivo PDF no se generó")
+
         
         except Exception as e:
             print(f"❌ Error: {e}")
             return render(request, "index.html", {"error": str(e)})
 
-        finally:
-            # Eliminar archivos temporales
-            if os.path.exists(ruta_word_absoluta):
-                os.remove(ruta_word_absoluta)
-            if os.path.exists(ruta_pdf):
-                os.remove(ruta_pdf)
+        # finally:
+        #     # Eliminar archivos temporales
+        #     if os.path.exists(ruta_word_absoluta):
+        #         os.remove(ruta_word_absoluta)
+        #     if os.path.exists(ruta_pdf):
+        #         os.remove(ruta_pdf)
 
         return response
 
@@ -80,7 +107,7 @@ def agregar_firma(ruta_pdf, firma_nombre):
         firma_ancho, firma_alto = img.size
 
     # Ajustar tamaño de la firma dinámicamente
-    factor_conversion = 0.45 # Tamaño relativo
+    factor_conversion = 0.4 # Tamaño relativo
     for page in doc:
         ancho_pagina = page.rect.width
         alto_pagina = page.rect.height
